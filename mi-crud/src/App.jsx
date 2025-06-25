@@ -91,21 +91,28 @@ function App() {
       </div>
 
       <div className="card">
-        <h2>Evaluaciones Guardadas</h2>
-        {alumnos.map((a) => (
-          <div key={a.id} className="card-evaluacion">
-            <p><strong>Alumno:</strong> {a.nombre}</p>
-            <p><strong>Asignatura:</strong> {a.asignatura}</p>
-            <p><strong>Promedio:</strong> {a.promedio}</p>
-            <span className="badge">{escala(a.promedio)}</span>
-            <div className="btns">
-              <button className="btn-editar" onClick={() => editar(a)}>Editar</button>
-              <button className="btn-eliminar" onClick={() => eliminar(a.id)}>Eliminar</button>
-            </div>
-          </div>
-        ))}
+  <h2>Evaluaciones Guardadas</h2>
+
+  {alumnos.length === 0 ? (
+    <p style={{ textAlign: "center", color: "#64748b" }}>
+      No hay evaluaciones guardadas aún. ¡Agrega una!
+    </p>
+  ) : (
+    alumnos.map((a) => (
+      <div key={a.id} className="card-evaluacion">
+        <p><strong>Alumno:</strong> {a.nombre}</p>
+        <p><strong>Asignatura:</strong> {a.asignatura}</p>
+        <p><strong>Promedio:</strong> {a.promedio}</p>
+        <span className="badge">{escala(a.promedio)}</span>
+        <div className="btns">
+          <button className="btn-editar" onClick={() => editar(a)}>Editar</button>
+          <button className="btn-eliminar" onClick={() => eliminar(a.id)}>Eliminar</button>
+        </div>
       </div>
-    </div>
+      ))
+    )}
+  </div>
+</div>
   );
 }
 

@@ -6,9 +6,13 @@ body {
 
 h1 {
   text-align: center;
-  margin-top: 20px;
   font-size: 2rem;
   color: #1e293b;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .container {
@@ -123,10 +127,11 @@ body, html {
 }
 
 .container {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 60px;
-  padding-bottom: 60px;
-  min-height: 100vh;
+  justify-content: flex-start;
+  padding: 40px 16px;
+  box-sizing: border-box;
 }
