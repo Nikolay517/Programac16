@@ -1,19 +1,22 @@
-//Importa React para poder usar JSX
-import React from "react"; 
+import React from 'react';
 
-//Componente funcional Item que recibe tres props:
-//item: objeto que representa el ítem a mostrar
-//deleteItem: función que se encarga de eliminar un ítem
-//editItem: función que se encarga de editar un ítem
-function Item({ item, deleteItem, editItem }) {
-    return (
-        <li>
-        {item.value}
-        <button onClick={() => editItem(item)}>Editar</button>
-        <button onClick={() => deleteItem(item.id)}>Eliminar</button>
-        </li>
-    );
+function Item({ alumno, onEdit, onDelete }) { //esto recibe un objeto alumno y dos funciones para editar y eliminar
+  return (
+    <div className="alumno-card">
+      <div className="alumno-info">
+        <p><strong>Alumno:</strong> {alumno.nombre}</p>
+        <p><strong>Asignatura:</strong> {alumno.asignatura}</p>
+        <p><strong>Promedio:</strong> {alumno.promedio.toFixed(1)}</p>
+        <span className={`badge ${alumno.escala.toLowerCase().replace(' ', '-')}`}>
+          {alumno.escala}
+        </span>
+      </div>
+      <div className="buttons">
+        <button className="edit" onClick={onEdit}>Editar</button>
+        <button className="delete" onClick={onDelete}>Eliminar</button>
+      </div>
+    </div>
+  );
 }
 
-//Exporta el componente Item para que pueda ser utilizado en otros archivos
 export default Item;

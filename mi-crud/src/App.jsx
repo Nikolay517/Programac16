@@ -1,118 +1,123 @@
-import React, { useState, useEffect } from "react";
-import "./App.css";
+import { useState, useEffect } from 'react';
+import './App.css';
+import Form from './components/Form';
+import List from './components/List';
 
 function App() {
-  const [alumnos, setAlumnos] = useState([]);
-  const [nombre, setNombre] = useState("");
-  const [asignatura, setAsignatura] = useState("");
-  const [promedio, setPromedio] = useState("");
-  const [editandoId, setEditandoId] = useState(null);
+  // Cargamos los alumnos desde localStorage al iniciar
+  const [alumnos, setAlumnos] = useState(() => {
+    const data = localStorage.getItem('alumnos');
+    return data ? JSON.parse(data) : [];
+  });
 
-  useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem("alumnos")) || [];
-    setAlumnos(guardados);
-  }, []);
+  // Estados del formulario
+  const [nombre, setNombre] = useState('');
+  const [asignatura, setAsignatura] = useState('');
+  const [promedio, setPromedio] = useState('');
+  const [editIndex, setEditIndex] = useState(null);
 
+  // Estado para manejar errores
+  const [errores, setErrores] = useState({});
+
+  // Guardamos en localStorage cada vez que cambia alumnos
   useEffect(() => {
-    localStorage.setItem("alumnos", JSON.stringify(alumnos));
+    localStorage.setItem('alumnos', JSON.stringify(alumnos));
   }, [alumnos]);
 
-  const escala = (nota) => {
-    if (nota < 4.0) return "Deficiente";
-    if (nota < 5.6) return "Con mejora";
-    if (nota < 6.5) return "Buen trabajo";
-    return "Destacado";
+  // Evalúa la escala según el promedio
+  const calcularEscala = (nota) => {
+    if (nota < 4.0) return 'Deficiente';
+    if (nota < 5.6) return 'Con Mejora';
+    if (nota < 6.5) return 'Buen Trabajo';
+    return 'Destacado';
   };
 
-  const limpiar = () => {
-    setNombre("");
-    setAsignatura("");
-    setPromedio("");
-    setEditandoId(null);
+  // Valida los campos del formulario
+  const validarFormulario = () => {
+    const nuevosErrores = {};
+    if (!nombre.trim()) nuevosErrores.nombre = 'El nombre es requerido.';
+    if (!asignatura.trim()) nuevosErrores.asignatura = 'La asignatura es requerida.';
+    if (!promedio) {
+      nuevosErrores.promedio = 'El promedio es requerido.';
+    } else {
+      const valor = parseFloat(promedio);
+      if (isNaN(valor) || valor < 1 || valor > 7) {
+        nuevosErrores.promedio = 'Debe estar entre 1.0 y 7.0.';
+      }
+    }
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
   };
 
+  // Maneja envío del formulario
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!nombre || !asignatura || !promedio) return;
+    if (!validarFormulario()) return;
 
     const nuevo = {
-      id: editandoId || Date.now(),
       nombre,
       asignatura,
       promedio: parseFloat(promedio),
+      escala: calcularEscala(parseFloat(promedio)),
     };
 
-    if (editandoId) {
-      setAlumnos(alumnos.map(a => a.id === editandoId ? nuevo : a));
+    if (editIndex !== null) {
+      const copia = [...alumnos];
+      copia[editIndex] = nuevo;
+      setAlumnos(copia);
+      setEditIndex(null);
     } else {
       setAlumnos([...alumnos, nuevo]);
     }
 
-    limpiar();
+    // Limpiar formulario
+    setNombre('');
+    setAsignatura('');
+    setPromedio('');
+    setErrores({});
   };
 
-  const eliminar = (id) => {
-    setAlumnos(alumnos.filter(a => a.id !== id));
-  };
-
-  const editar = (alumno) => {
+  // Carga datos de un alumno al formulario
+  const handleEdit = (index) => {
+    const alumno = alumnos[index];
     setNombre(alumno.nombre);
     setAsignatura(alumno.asignatura);
     setPromedio(alumno.promedio);
-    setEditandoId(alumno.id);
+    setEditIndex(index);
+    setErrores({});
   };
-  
+
+  // Elimina un alumno
+  const handleDelete = (index) => {
+    const nuevos = alumnos.filter((_, i) => i !== index);
+    setAlumnos(nuevos);
+  };
+
   return (
-    <div className="container">
+    <div className="main-container">
       <h1>Evaluación de Alumnos</h1>
 
       <div className="card">
-        <h2>Agregar Nueva Evaluación</h2>
-
-<label>
-  Nombre del Alumno:
-  <input placeholder="Ej: Juan Pérez" value={nombre} onChange={(e) => setNombre(e.target.value)}/>
-</label>
-
-<label>
-  Asignatura:
-  <input placeholder="Ej: Matemáticas" value={asignatura} onChange={(e) => setAsignatura(e.target.value)}/>
-</label>
-
-<label>
-  Promedio (0.0 - 7.0):
-  <input type="number" min="0" max="7" step="0.1" placeholder="Ej: 5.5" value={promedio}onChange={(e) => setPromedio(e.target.value)}/>
-</label>
-
-
-        <button onClick={handleSubmit}>
-          {editandoId ? "Actualizar Evaluación" : "Agregar Evaluación"}
-        </button>
+        <h2>{editIndex !== null ? 'Editar Evaluación' : 'Agregar Nueva Evaluación'}</h2>
+        <Form
+          nombre={nombre}
+          setNombre={setNombre}
+          asignatura={asignatura}
+          setAsignatura={setAsignatura}
+          promedio={promedio}
+          setPromedio={setPromedio}
+          handleSubmit={handleSubmit}
+          editIndex={editIndex}
+          errores={errores}
+        />
       </div>
 
-      <div className="card">
-  <h2>Evaluaciones Guardadas</h2>
-
-  {alumnos.length === 0 ? (
-    <p style={{ textAlign: "center", color: "#64748b" }}>
-      No hay evaluaciones guardadas aún. ¡Agrega una!
-    </p>
-  ) : (
-    alumnos.map((a) => (
-      <div key={a.id} className="card-evaluacion">
-        <p><strong>Alumno:</strong> {a.nombre}</p>
-        <p><strong>Asignatura:</strong> {a.asignatura}</p>
-        <p><strong>Promedio:</strong> {a.promedio}</p>
-        <span className="badge">{escala(a.promedio)}</span>
-        <div className="btns">
-          <button className="btn-editar" onClick={() => editar(a)}>Editar</button>
-          <button className="btn-eliminar" onClick={() => eliminar(a.id)}>Eliminar</button>
-        </div>
-      </div>
-      ))
-    )}
-  </div>
-</div>
+      <List
+        alumnos={alumnos}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
+    </div>
   );
 }
 
