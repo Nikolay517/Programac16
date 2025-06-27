@@ -4,27 +4,29 @@ import Form from './components/Form';
 import List from './components/List';
 
 function App() {
-  // Cargamos los alumnos desde localStorage al iniciar
+  // Estado inicial: carga alumnos desde localStorage (si existen), si no, inicia con un arreglo vacío
   const [alumnos, setAlumnos] = useState(() => {
     const data = localStorage.getItem('alumnos');
     return data ? JSON.parse(data) : [];
   });
 
-  // Estados del formulario
+  // Estados para los campos del formulario
   const [nombre, setNombre] = useState('');
   const [asignatura, setAsignatura] = useState('');
   const [promedio, setPromedio] = useState('');
+  
+  // Estado que indica si se está editando (índice del alumno en edición), o null si se está agregando uno nuevo
   const [editIndex, setEditIndex] = useState(null);
 
-  // Estado para manejar errores
+  // Estado para almacenar mensajes de error del formulario
   const [errores, setErrores] = useState({});
 
-  // Guardamos en localStorage cada vez que cambia alumnos
+  // Efecto que guarda la lista de alumnos en localStorage cada vez que esta cambia
   useEffect(() => {
     localStorage.setItem('alumnos', JSON.stringify(alumnos));
   }, [alumnos]);
 
-  // Evalúa la escala según el promedio
+  // Función que determina la escala (evaluación cualitativa) a partir del promedio
   const calcularEscala = (nota) => {
     if (nota < 4.0) return 'Deficiente';
     if (nota < 5.6) return 'Con Mejora';
@@ -32,11 +34,13 @@ function App() {
     return 'Destacado';
   };
 
-  // Valida los campos del formulario
+  // Función que valida los datos del formulario antes de guardar
   const validarFormulario = () => {
     const nuevosErrores = {};
+
     if (!nombre.trim()) nuevosErrores.nombre = 'El nombre es requerido.';
     if (!asignatura.trim()) nuevosErrores.asignatura = 'La asignatura es requerida.';
+
     if (!promedio) {
       nuevosErrores.promedio = 'El promedio es requerido.';
     } else {
@@ -45,14 +49,15 @@ function App() {
         nuevosErrores.promedio = 'Debe estar entre 1.0 y 7.0.';
       }
     }
+
     setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
+    return Object.keys(nuevosErrores).length === 0; // Retorna true si no hay errores
   };
 
-  // Maneja envío del formulario
+  // Función que maneja el envío del formulario (agrega o actualiza una evaluación)
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validarFormulario()) return;
+    if (!validarFormulario()) return; // Si hay errores, no continúa
 
     const nuevo = {
       nombre,
@@ -62,22 +67,24 @@ function App() {
     };
 
     if (editIndex !== null) {
+      // Si se está editando un alumno existente
       const copia = [...alumnos];
       copia[editIndex] = nuevo;
       setAlumnos(copia);
-      setEditIndex(null);
+      setEditIndex(null); // Sale del modo edición
     } else {
+      // Si es una nueva evaluación
       setAlumnos([...alumnos, nuevo]);
     }
 
-    // Limpiar formulario
+    // Limpiar el formulario después de guardar
     setNombre('');
     setAsignatura('');
     setPromedio('');
     setErrores({});
   };
 
-  // Carga datos de un alumno al formulario
+  // Función que carga los datos de un alumno en el formulario para edición
   const handleEdit = (index) => {
     const alumno = alumnos[index];
     setNombre(alumno.nombre);
@@ -87,16 +94,18 @@ function App() {
     setErrores({});
   };
 
-  // Elimina un alumno
+  // Función que elimina un alumno de la lista
   const handleDelete = (index) => {
     const nuevos = alumnos.filter((_, i) => i !== index);
     setAlumnos(nuevos);
   };
 
+  // Renderizado principal de la app
   return (
     <div className="main-container">
       <h1>Evaluación de Alumnos</h1>
 
+      {/* Sección del formulario para agregar o editar evaluaciones */}
       <div className="card">
         <h2>{editIndex !== null ? 'Editar Evaluación' : 'Agregar Nueva Evaluación'}</h2>
         <Form
@@ -112,6 +121,7 @@ function App() {
         />
       </div>
 
+      {/* Lista de evaluaciones guardadas */}
       <List
         alumnos={alumnos}
         handleEdit={handleEdit}
@@ -121,4 +131,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; //Exporta el componente principal de la aplicación para ser usado en otros archivos
